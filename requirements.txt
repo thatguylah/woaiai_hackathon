@@ -1,3 +1,7 @@
-pyTelegramBotAPI
+python-telegram-bot
 requests 
 python-dotenv
+flask
+transformers
+huggingface_hub
+Pillow
