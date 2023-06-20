@@ -5,3 +5,4 @@ flask
 transformers
 huggingface_hub
 Pillow
+boto3
