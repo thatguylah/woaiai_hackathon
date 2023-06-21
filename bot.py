@@ -46,9 +46,12 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 
 # Enable logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(processName)s - %(threadName)s - [%(thread)d] - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+huggingFaceLogger = logging.getLogger("huggingface_hub").setLevel(logging.DEBUG)
+messageHandlerLogger = logging.getLogger("telegram.bot").setLevel(logging.DEBUG)
+applicationLogger = logging.getLogger("telegram.ext").setLevel(logging.DEBUG)
 
 # Define a few command handlers. These usually take the two arguments update and
 # context.
@@ -63,20 +66,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    helpLogger = logging.getLogger("helpProcess")
     update_as_json = json.dumps(update.to_dict())
-    helpLogger.info(update_as_json)
-    helpLogger.info(update.effective_chat.first_name + " "+ "sent the message of:" + update.message.text)
+    logger.info(update_as_json)
+    logger.info(update.effective_chat.first_name + " "+ "sent the message of:" + update.message.text)
     await update.message.reply_text("Help!")
     
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
     client = InferenceClient(token=HF_TOKEN)
-    echoLogger = logging.getLogger("echoProcess")
     update_as_json = json.dumps(update.to_dict())
-    echoLogger.info(update_as_json)
-    echoLogger.info(update.effective_chat.first_name + " "+ "sent the message of:" + update.message.text)
+    logger.info(update_as_json)
+    logger.info(update.effective_chat.first_name + " "+ "sent the message of:" + update.message.text)
 
     image = client.text_to_image(update.message.text)
     image_path="generic_photo.png"
@@ -104,7 +105,7 @@ def main(dev_mode) -> None:
 	application.add_handler(CommandHandler("help", help_command))
 
 	# on non command i.e message - echo the message on Telegram
-	application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+	application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND , echo))
 
 	# Run the bot until the user presses Ctrl-C
 	application.run_polling()
