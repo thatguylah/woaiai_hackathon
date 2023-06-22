@@ -75,9 +75,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
     client = InferenceClient(token=HF_TOKEN)
-    update_as_json = json.dumps(update.to_dict())
+    update_as_dict = update.to_dict()
+    update_as_json = json.dumps(update_as_dict)
     logger.info(update_as_json)
-    logger.info(update.effective_chat.first_name + " "+ "sent the message of:" + update.message.text)
+    logger.info(update_as_dict["message"]["from"]["first_name"]+ " "+ "sent the message of:" + update.message.text)
 
     image = client.text_to_image(update.message.text)
     image_path="generic_photo.png"
