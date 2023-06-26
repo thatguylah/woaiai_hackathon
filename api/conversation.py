@@ -16,7 +16,7 @@ import logging
 from dotenv import dotenv_values
 import json
 from huggingface_hub import InferenceClient
-from utils import run_in_threadpool_decorator
+from .utils import run_in_threadpool_decorator
 
 from telegram import __version__ as TG_VER
 from telegram import (
