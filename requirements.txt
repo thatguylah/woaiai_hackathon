@@ -7,3 +7,5 @@ huggingface_hub
 Pillow
 boto3
 openai
+asyncio
+functools
