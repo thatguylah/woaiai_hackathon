@@ -6,3 +6,4 @@ transformers
 huggingface_hub
 Pillow
 boto3
+openai
