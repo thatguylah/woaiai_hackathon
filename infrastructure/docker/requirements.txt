@@ -2,8 +2,10 @@ python-telegram-bot
 requests 
 python-dotenv
 transformers
+diffusers
 huggingface_hub
 Pillow
 boto3
 openai
 asyncio
+flask
