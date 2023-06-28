@@ -20,6 +20,7 @@ from api.conversation import (
     generate_image,
 )
 from api.utils import run_in_threadpool_decorator
+from api.outpainting import outpainting_handler
 
 from telegram import __version__ as TG_VER
 from telegram import Update
@@ -145,6 +146,7 @@ def main(dev_mode) -> None:
     # add conversation handler to application
     application.add_handler(conv_handler)
     application.add_handler(ping_handler)
+    application.add_handler(outpainting_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

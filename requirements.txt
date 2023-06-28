@@ -1,4 +1,4 @@
-python-telegram-bot
+python-telegram-bot==20.3
 requests 
 python-dotenv
 flask
@@ -8,4 +8,3 @@ Pillow
 boto3
 openai
 asyncio
-functools
