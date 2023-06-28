@@ -6,6 +6,7 @@ diffusers
 huggingface_hub
 Pillow
 boto3
-openai
-asyncio
-flask
+torch
+opencv-python
+scikit-image
+numpy
