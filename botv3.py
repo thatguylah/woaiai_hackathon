@@ -131,7 +131,7 @@ def main(dev_mode) -> None:
                                                                        MessageHandler(filters.Regex('(Propose other themes)'), get_theme, block = False),
                                                                        MessageHandler(filters.Regex('(Write own theme)'), get_user_custom_theme, block = False)],
                                                  CUSTOM_IMAGE_PROMPT: [MessageHandler(filters.Regex('(Generate Image: Use Custom Prompt|Continue)'), get_user_custom_image_prompt, block = False)],
-                                                 GENERATE_PROMPT_AND_IMAGE: [MessageHandler(filters.TEXT & ~filters.Regex('(Propose other image designs|Write own image design|/choosedesign)') & ~filters.COMMAND, generate_prompt_and_image, block = False),
+                                                 GENERATE_PROMPT_AND_IMAGE: [MessageHandler(filters.TEXT & ~filters.Regex('(Propose other image designs|Write own image design)') & ~filters.COMMAND, generate_prompt_and_image, block = False),
                                                                              MessageHandler(filters.Regex('(Propose other image designs)'), select_image_design, block = False), 
                                                                              MessageHandler(filters.Regex('(Write own image design)'), get_user_custom_image_design, block = False)],
                                                  GENERATE_IMAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, generate_image, block = False)]
