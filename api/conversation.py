@@ -658,6 +658,10 @@ async def get_user_custom_image_design(update: Update, context: ContextTypes.DEF
     # image type will be set to 'image' by default since user can input own image description
     context.user_data['image_info']['image_type'] = 'image'
     
+    # remove 'image_prompt' key if it exists
+    if 'image_prompt' not in context.user_data.keys():
+        del context.user_data['image_prompt']
+        
     # check if user's company is set
     if 'company' not in context.user_data.keys():
         
@@ -735,7 +739,7 @@ async def get_user_custom_image_prompt(update: Update, context: ContextTypes.DEF
     # set value of 'image_type' to 'image'
     context.user_data['image_info']['image_type'] = 'image'
 
-    return GENERATE_PROMPT_AND_IMAGE
+    return GENERATE_IMAGE
 
 # function to generate text-to-image prompt and image
 async def generate_prompt_and_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
