@@ -366,9 +366,11 @@ async def get_theme(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         Use '\'s' for any word that requires ```'s```, example: the house\'s window.
         Return the result in a JSON format, example:''' +\
         r'''
-        {1: result,
-        2: result2,
-        3: result3}'''
+        {
+            1: result,
+            2: result2,
+            3: result3
+        }'''
         
         return prompt
 
@@ -410,7 +412,7 @@ async def get_theme(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         # get chatgpt's response
         response = await get_completion(prompt, "gpt-3.5-turbo", 0)
         themes = eval(response)
-    
+
     # store results
     context.user_data['theme_output_json'] = themes
     
