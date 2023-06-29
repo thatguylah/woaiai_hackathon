@@ -1,4 +1,6 @@
 .env
+bot.py
+botv2.py
 data/
 api/outpainting.py
 api/utils.py
