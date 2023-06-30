@@ -56,16 +56,16 @@ logger = logging.getLogger(__name__)
 
 async def outpainting_process_start(update: Update, context: ContextTypes):
     await update.message.reply_text(
-        "Hi! You have triggered an /outpainting workflow, after this,\
-                please upload a base image you would like to outpaint, \
-                followed by a masked image of the same base image"
+        "Hi! You have triggered an /outpainting workflow, \
+            please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n\
+                2.Once base image is received, upload a masked image of the same base image"
     )
     return STAGE_0
 
 
 async def outpainting_process_terminate(update: Update, context: ContextTypes):
     await update.message.reply_text(
-        "You have terminated the /outpainting workflow. Please type /outpainting to start again."
+        "You have terminated the outpainting workflow. Please send /outpainting to start again."
     )
     return ConversationHandler.END
 
@@ -197,14 +197,13 @@ class ImageProcessor:
                 await self.put_to_sqs(MessageBody)
 
                 await update.message.reply_text(
-                    "Your job has been submitted successfully, please wait a while to process, we will send you when its complete 🙂 \
-                    This conversation is over now, please type /outpainting to start a new one. Or type /start for a guided workflow."
+                    "Your masked image has been received!🙂 Your request is currently being processed, the image will be sent to you once it is completed.\n\nThis conversation is over now. Please send /outpainting to process a new image or send /start for a new conversation."
                 )
                 return ConversationHandler.END
             except Exception as e:
                 logger.log(logging.ERROR, f"Exception caught here:{e}")
                 await update.message.reply_text(
-                    "Sorry, your job has failed to submit, please try again or contact woaiai. This conversation is over, please restart"
+                    "Sorry, your job has failed to submit, please try again or contact woaiai. Send /outpainting to process a new image or /start for a new conversation."
                 )
                 return ConversationHandler.END
 
