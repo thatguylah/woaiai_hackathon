@@ -145,7 +145,9 @@ class ImageProcessor:
 
         self.base_image_s3_key = s3_key
         await update.message.reply_text(
-            "Your image has been received!🙂 Please upload your masked image now."
+            "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change. \
+            Optionally, add a caption to guide the removal based on what you'd like the masked region to be replaced with. \
+            Eg. 'Blue Background', 'Remove the person on the left', 'Remove the tree on the right'"
         )
         return STAGE_1
 
