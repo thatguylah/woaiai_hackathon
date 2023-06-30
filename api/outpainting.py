@@ -58,7 +58,7 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
     await update.message.reply_text(
         "Hi! You have triggered an /outpainting workflow, \
             please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n\
-                2.Once base image is received, upload a masked image of the same base image"
+                2. Once base image is received, upload a masked image of the same base image"
     )
     return STAGE_0
 
