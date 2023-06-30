@@ -80,8 +80,6 @@ applicationLogger = logging.getLogger("telegram.ext").setLevel(logging.DEBUG)
 
 
 
-
-
 # define helper function to get model's response (using "gpt-3.5-turbo")
 @run_in_threadpool_decorator("gpt_threads")
 def get_completion(prompt:str, model: str, temperature: float) -> str:
