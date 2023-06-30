@@ -9,13 +9,14 @@ from botocore.exceptions import ClientError
 import time
 from io import BytesIO
 import json
+import requests
 
 from skimage.metrics import structural_similarity
 
 s3 = boto3.client("s3")
 S3_BUCKET = os.environ['S3_BUCKET']
 SM_ENDPONT = os.environ['SM_ENDPOINT']
-
+TELEBOT_TOKEN = os.environ['TELEBOT_TOKEN']
 
 def get_mask(image1_pil, image2_pil):
 
@@ -46,7 +47,7 @@ def get_mask(image1_pil, image2_pil):
     mask_pil = Image.fromarray(mask)
 
     return mask_pil
-    
+
 def get_image_s3(bucket, key):
     file_byte_string = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
     image = Image.open(BytesIO(file_byte_string))
@@ -157,31 +158,59 @@ def save_image_s3(image_list, key_prefix):
     img = Image.fromarray(np_image)
 
     in_mem_file = BytesIO()
-    img.save(in_mem_file, format='png')
+    img.save(in_mem_file, format='jpeg')
     in_mem_file.seek(0)
     response = s3.upload_fileobj(in_mem_file, S3_BUCKET, f"{key_prefix}/result.jpg")
 
     return response
+
+def send_photo_telebot(image_list, chat_id): 
+    np_image = (np.array(image_list)).astype(np.uint8)
+    img = Image.fromarray(np_image)
+    in_mem_file = BytesIO()
+    img.save(in_mem_file, format='jpeg')
+    in_mem_file.seek(0)
+
+    method = "sendPhoto"
+    params = {'chat_id': chat_id}
+    files = {'photo': in_mem_file}
+    api_url = f"https://api.telegram.org/bot{TELEBOT_TOKEN}/sendPhoto"
+    resp = requests.post(api_url, params, files=files)
+    return resp
 
 
 
 def handler(event, context):
     print("Received event", event)
     for record in event["Records"]:
-        payload = record["body"]
+        payload = json.loads(record["body"])
         print("Received queue msg", payload)
         base_key = payload["base_image_s3_key"]
         masked_key = payload["mask_image_s3_key"]
         base_image_basename = base_key.split("/")[-1].split(".")[0]
         results_key_prefix = f"output/{base_image_basename}"
 
-        image = remove(base_key, masked_key, results_key_prefix)
-        print("Generated removal image")
+        try:
+            image = remove(base_key, masked_key, results_key_prefix)
+            print("Generated removal image")
+        except ValueError as e: 
+            if str(e) == "Input images must have the same dimensions.":
+                return {
+                    'statusCode': 501,
+                    'body': json.dumps('Input images do not have same dimensions.')
+                }
+            else: 
+                raise Exception(e)
 
-        save_response = save_image_s3(image, results_key_prefix)
-        print("Done saving s3 result")
+        # save_response = save_image_s3(image, results_key_prefix)
+        # print("Done saving s3 result")
 
-        return True
+        telebot_response = send_photo_telebot(image, payload["message"]["chat"]["id"])
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Image generated')
+        }
 
         
 
