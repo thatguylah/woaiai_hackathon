@@ -107,8 +107,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     '''
     Sends a message when the command /start is sent. 
     
-    New users: username, chat ID, user's company are cached, then proceed to ASSISTANCE_TYPE state
-    Returning users: immediately proceed ASSISTANCE_TYPE state
+    New users: username, chat ID, user's company are cached, then proceed to USER_COMPANY state
+    Returning users: immediately proceed VALIDATE_USER state
     '''
     # get user
     user = update.effective_user
@@ -224,7 +224,7 @@ async def get_user_company(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     '''
     Updates (returning user) or creates (new user) context.user_data['company']
     
-    Users may enter this state from the various states: /start, /editcompany, /customdesign
+    Users may enter this state from the various states: /start, /editcompany
     '''
     # entering from /start state (step-by-step process)
     if 'Generate Image' in update.message.text:
