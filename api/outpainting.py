@@ -237,5 +237,5 @@ outpainting_handler = ConversationHandler(
     name="OutpaintingBot",
     persistent=True,
     block=False,
-    fallbacks=[CommandHandler("quit", outpainting_process_terminate)],
+    fallbacks=[CommandHandler("cancel", outpainting_process_terminate)],
 )
