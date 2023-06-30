@@ -204,7 +204,7 @@ async def validate_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         company = context.user_data['company']
 
         await update.message.reply_html(
-                                        f'You are currently representing <strong>{company}</strong>.\n\nThis will influence the image generation. To edit the company that you represent, click on "Edit Company Name". Otherwise, click on "Continue".',
+                                        f'You are currently representing <strong>{company}</strong>.\n\nThis will influence the image generation process. To edit the company that you represent, click on "Edit Company Name". Otherwise, click on "Continue".',
                                         reply_markup = ReplyKeyboardMarkup([['Continue'], ['Edit Company Name']]),
                                         )
     elif 'Edit Existing Image' in context.user_data['assistance_type']:
