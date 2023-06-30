@@ -54,22 +54,33 @@ def get_image_s3(bucket, key):
 
     return image
 
-def resize_image(pil_image):
-    max_width = 500
-    max_height = 800
-    im_width = pil_image.size[0]
-    im_height = pil_image.size[1]
-    if im_width <= max_width and im_height <= max_height: 
-        return pil_image
-    else:     
-        if im_width > max_width:
-            wpercent = (max_width/float(im_width))
-            hsize = int((float(im_height)*float(wpercent)))
-            return pil_image.resize((max_width, hsize), Image.ANTIALIAS)
+def resize_image(pil_image, width=None, height=None):
+    if height and width: 
+        return pil_image.resize((width, height), Image.ANTIALIAS)
+    else:
+        max_width = 500
+        max_height = 800
+        im_width = pil_image.size[0]
+        im_height = pil_image.size[1]
+        if im_width <= max_width and im_height <= max_height: 
+            return pil_image
         else:
-            hpercent = (max_height/float(im_height))
-            wsize = int((float(im_width)*float(hpercent)))
-            return pil_image.resize((wsize, max_height), Image.ANTIALIAS)
+            wpercent = 1
+            hpercent = 1     
+            if im_width > max_width:
+                wpercent = (max_width/float(im_width))
+            if im_height > max_height:
+                hpercent = (max_height/float(im_height))
+
+            if wpercent < hpercent:
+                hsize = int((float(im_height)*float(wpercent)))
+                print(f"Resizing height to {hsize}, wpercent={wpercent}, im_width={im_width}, im_height={im_height}.")
+                return pil_image.resize((max_width, hsize), Image.ANTIALIAS)
+            else:
+                wsize = int((float(im_width)*float(hpercent)))
+                print(f"Resizing width to {wsize}, hpercent={hpercent}, im_width={im_width}, im_height={im_height}.")
+                return pil_image.resize((wsize, max_height), Image.ANTIALIAS)
+            
 
 def pil2bytes(pil_image):
     buffered = BytesIO()
@@ -115,7 +126,7 @@ def post_request(s3_request_payload_key, endpoint_name):
     return success_output_location, failure_output_location
 
 
-def remove(original_key, masked_key, results_key_prefix):
+def remove(original_key, masked_key, results_key_prefix, text_prompt):
     print("Getting S3 images")
 
     original = get_image_s3(S3_BUCKET, original_key)
@@ -123,11 +134,15 @@ def remove(original_key, masked_key, results_key_prefix):
     original = resize_image(original)
     masked = resize_image(masked)
 
-    print("Getting mask")
+    if original.size !=  masked.size: # sizes still different after masking
+        if abs(original.size[0]-masked.size[0]) <= 10 and abs(original.size[1]-masked.size[1]) <= 10: # slight difference
+            masked = resize_image(masked, original.size[0], original.size[1]) # resize masked to match original
+
+    print(f"Getting mask for original image with size {original.size} and masked image with size {masked.size}.")
     mask = get_mask(original, masked)
     
     payload = {
-        "prompt": "",
+        "prompt": text_prompt,
         "image": pil2bytes(original),
         "mask_image": pil2bytes(mask),
         "num_inference_steps": 50,
@@ -191,22 +206,30 @@ def handler(event, context):
         print("Received queue msg", payload)
         base_key = payload["base_image_s3_key"]
         masked_key = payload["mask_image_s3_key"]
+        if "caption" in payload["message"].keys():
+            text_prompt = payload["message"]["caption"]
+        else:
+            text_prompt = ""
         base_image_basename = base_key.split("/")[-1].split(".")[0]
         results_key_prefix = f"output/{base_image_basename}"
 
         try:
-            image = remove(base_key, masked_key, results_key_prefix)
+            image = remove(base_key, masked_key, results_key_prefix, text_prompt)
             print("Generated removal image")
         except ValueError as e: 
             if str(e) == "Input images must have the same dimensions.":
-                tele_message = "Sorry, your job has failed as both images must be of the same dimensions. We encourage you to use Telegram's built-in brush tool to generate masked images. This conversation is over now, please type /outpainting to start a new one. Or type /start for a guided workflow."
+                tele_message = "Sorry, your job has failed as both images must be of the same dimensions. We encourage you to use Telegram's built-in brush tool to generate masked images. This conversation is over now, please type /inpainting to start a new one. Or type /start for a guided workflow."
                 telebot_text_response = send_message_telebot(tele_message, payload["message"]["chat"]["id"])
                 return {
                     'statusCode': 501,
                     'body': json.dumps('Input images do not have same dimensions.')
                 }
             else: 
-                raise Exception(e)
+                print("Error in removal", e)
+                return {
+                    'statusCode': 500,
+                    'body': json.dumps('Error in processing removal.')
+                }
 
         # save_response = save_image_s3(image, results_key_prefix)
         # print("Done saving s3 result")
