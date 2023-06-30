@@ -6,9 +6,9 @@ provider:
   runtime: python3.8
   role: arn:aws:iam::159762733383:role/model-lambda-role
   environment:
-    S3_BUCKET: ${self:custom.bucket}
-    SM_ENDPOINT: ${self:custom.sm_endpoint}
-    TELEBOT_TOKEN: ${self:custom.telebot_token}
+    S3_BUCKET: ${self:custom.env.bucket}
+    SM_ENDPOINT: ${self:custom.env.sm_endpoint}
+    TELEBOT_TOKEN: ${self:custom.env.telebot_token}
 
 functions:
   remove:
@@ -20,9 +20,7 @@ functions:
           arn: arn:aws:sqs:ap-southeast-1:159762733383:msg_incoming_queue
 
 custom:
-  bucket: dsaid-hackathon-tele-bot-images
-  sm_endpoint: jumpstart-example-model-inpainting-stab-2023-06-29-14-22-30-924
-  telebot_token: 6143191325:AAFNeCSUhQT3InWulNx3_1j77N-OghpotqE
+  env: ${file(./env.yml)}
 
 package:
   exclude:

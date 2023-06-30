@@ -171,13 +171,17 @@ def send_photo_telebot(image_list, chat_id):
     img.save(in_mem_file, format='jpeg')
     in_mem_file.seek(0)
 
-    method = "sendPhoto"
     params = {'chat_id': chat_id}
     files = {'photo': in_mem_file}
     api_url = f"https://api.telegram.org/bot{TELEBOT_TOKEN}/sendPhoto"
     resp = requests.post(api_url, params, files=files)
     return resp
 
+def send_message_telebot(message, chat_id):
+    params = {'chat_id': chat_id, 'text': message}
+    api_url = f"https://api.telegram.org/bot{TELEBOT_TOKEN}/sendMessage"
+    resp = requests.post(api_url, params)
+    return resp
 
 
 def handler(event, context):
@@ -195,6 +199,8 @@ def handler(event, context):
             print("Generated removal image")
         except ValueError as e: 
             if str(e) == "Input images must have the same dimensions.":
+                tele_message = "Sorry, your job has failed as both images must be of the same dimensions. We encourage you to use Telegram's built-in brush tool to generate masked images. This conversation is over now, please type /outpainting to start a new one. Or type /start for a guided workflow."
+                telebot_text_response = send_message_telebot(tele_message, payload["message"]["chat"]["id"])
                 return {
                     'statusCode': 501,
                     'body': json.dumps('Input images do not have same dimensions.')

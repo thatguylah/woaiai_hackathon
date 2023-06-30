@@ -7,13 +7,15 @@ Run notebook `Sagemaker SD Inpainting Deployment.ipynb` in Sagemaker Studio.
 
 ## Deploy Lambda
 
-1. Create Docker image locally 
+1. Create `env.yml` file (based on `env-example.yml`) and fill in tokens accordingly.
+
+2. Create Docker image locally 
 
 ```
 docker build -f Dockerfile -t woaiai-removal-lambda:latest .
 ```
 
-2. Push Docker image to ECR
+3. Push Docker image to ECR
 - Pre-requisites: AWS CLI profile, Serverless
 - Create ECR repository
 ```
@@ -33,7 +35,7 @@ docker tag woaiai-removal 159762733383.dkr.ecr.ap-southeast-1.amazonaws.com/woai
 docker push 159762733383.dkr.ecr.ap-southeast-1.amazonaws.com/woaiai-removal-lambda
 ```
 
-3. Deploy to AWS with Serverless
+4. Deploy to AWS with Serverless
 
 ```
 serverless deploy --aws-profile woaiai --force
