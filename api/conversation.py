@@ -147,7 +147,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     
     # output keyboard markup for user to respond
     await update.message.reply_html(
-                                    f'Hi {user.mention_html()} \U0001F44B, I am Wo Ai AI Chatbot and I can generate posters, photographs, and illustrations.\n\nHow may I help you today?',
+                                    f'Hi {user.mention_html()} \U0001F44B, I am Wo Ai AI Chatbot and I can generate posters, photographs, and illustrations.\n\nHow may I help you today?\nSelect an option below.',
                                     reply_markup = ReplyKeyboardMarkup(buttons_lst),
                                     )
     
@@ -252,7 +252,7 @@ async def get_user_company(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         
         # output keyboard markup for user to respond to
         await update.message.reply_text(
-                                        f'Which company are you generating this image for?',
+                                        f'Which company are you generating this image for?\nSelect an option below.',
                                         reply_markup = ReplyKeyboardMarkup(buttons_lst),
                                         )
         return USER_COMPANY
@@ -296,7 +296,7 @@ async def edit_company_command(update: Update, context: ContextTypes.DEFAULT_TYP
         
         # ask user to edit company input or not
         await update.message.reply_html(
-                                        f'Your current company is <strong>{company}</strong>.\n\nWould you like to change it?',
+                                        f'Your current company is <strong>{company}</strong>.\n\nWould you like to change it?\nSelect an option below.',
                                         reply_markup = ReplyKeyboardMarkup([['Yes'], ['No']]),
                                         )
         # proceed to state that handles user's company input
@@ -761,7 +761,7 @@ async def generate_prompt_and_image(update: Update, context: ContextTypes.DEFAUL
             # Request for custom image design
             await update.message.reply_html(
                                             f'''
-                                            Incorrect format passed.\n\nPlease write your custom image design, add "/" after each design element. Use this format:\n\n<i>Image Description</i> / <i>Object in foreground</i> / <i>Style of image</i>\ne.g. A polaroid photo of Space Shuttle Discovery launch / crew waving from the cockpit / vintage\n\nSend /choosedesign to select any of the previously suggested image designs.
+                                            Incorrect format passed.\n\nPlease type out your custom image design, add "/" after each design element. Use this format:\n\n<i>Image Description</i> / <i>Object in foreground</i> / <i>Style of image</i>\ne.g. A polaroid photo of Space Shuttle Discovery launch / crew waving from the cockpit / vintage\n\nSend /choosedesign to select any of the previously suggested image designs.
                                             ''',
                                             reply_markup = ForceReply(selective = True),
                                             )  
@@ -901,7 +901,7 @@ async def generate_prompt_and_image(update: Update, context: ContextTypes.DEFAUL
                     '/choosedesign - choose another previously proposed image design',
                     '/start - start a new conversation',
                     '/quit - stop the conversation']
-    output_text = f'Done! Your {image_type} has been generated. Can I help you with anything else?\n\nYou can also control me by sending these commands:\n\n'
+    output_text = f'Done! Your {image_type} has been generated. Can I help you with anything else?\nSelect an option below.\n\nYou can also control me by sending these commands:\n\n'
     for command_description in lst_commands:
         output_text += command_description + '\n'
     
@@ -969,7 +969,7 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     '/choosedesign - choose another previously proposed image design',
                     '/start - start a new conversation',
                     '/quit - stop the conversation']
-    output_text = f'Done! Your {image_type} has been generated. Can I help you with anything else?\n\nYou can also control me by sending these commands:\n\n'
+    output_text = f'Done! Your {image_type} has been generated. Can I help you with anything else?\nSelect an option below.\n\nYou can also control me by sending these commands:\n\n'
     for command_description in lst_commands:
         output_text += command_description + '\n'
     await update.message.reply_text(
