@@ -143,7 +143,7 @@ class ImageProcessor:
 
         self.base_image_s3_key = s3_key
         await update.message.reply_text(
-            "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change.\n\nOptionally, add a caption to guide the removal based on what you'd like the masked region to be replaced with (Eg. 'Blue Background', 'Remove the person on the left', 'Remove the tree on the right')\n\nSend /cancel to exit the outpainting workflow."
+            "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change.\n\nOptionally, type out a caption to guide the removal based on what you'd like the masked region to be replaced with (Eg. 'Blue Background', 'Remove the person on the left', 'Remove the tree on the right')\n\nSend /cancel to exit the outpainting workflow."
         )
         return STAGE_1
 
