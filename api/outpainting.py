@@ -42,7 +42,7 @@ config = dotenv_values(".env")
 # get API tokens
 HF_TOKEN = config["HF_API_KEY"]
 openai.api_key = config["OPENAI_API_KEY"]
-# TELEBOT_TOKEN = config['TELEBOT_TOKEN']
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(processName)s - %(threadName)s - [%(thread)d] - %(name)s - %(levelname)s - %(message)s",
@@ -56,16 +56,14 @@ logger = logging.getLogger(__name__)
 
 async def outpainting_process_start(update: Update, context: ContextTypes):
     await update.message.reply_text(
-        "Hi! You have triggered an /outpainting workflow, \
-            please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n\
-                2. Once base image is received, upload a masked image of the same base image"
+        "Hi! You have triggered an /outpainting workflow, please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n2. Once base image is received, upload a masked image of the same base image\n\nSend /cancel to exit the outpainting workflow."
     )
     return STAGE_0
 
 
 async def outpainting_process_terminate(update: Update, context: ContextTypes):
     await update.message.reply_text(
-        "You have terminated the outpainting workflow. Please send /outpainting to start again."
+        "You have terminated the outpainting workflow. Please send /outpainting to start again or send /start for a new conversation."
     )
     return ConversationHandler.END
 
@@ -145,9 +143,7 @@ class ImageProcessor:
 
         self.base_image_s3_key = s3_key
         await update.message.reply_text(
-            "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change. \
-            Optionally, add a caption to guide the removal based on what you'd like the masked region to be replaced with. \
-            Eg. 'Blue Background', 'Remove the person on the left', 'Remove the tree on the right'"
+            "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change.\n\nOptionally, add a caption to guide the removal based on what you'd like the masked region to be replaced with (Eg. 'Blue Background', 'Remove the person on the left', 'Remove the tree on the right')\n\nSend /cancel to exit the outpainting workflow."
         )
         return STAGE_1
 
@@ -210,7 +206,7 @@ class ImageProcessor:
                 return ConversationHandler.END
 
         else:
-            await update.message.reply_text("Please upload an image 🙂")
+            await update.message.reply_text("Please upload an image 🙂\n\nSend /cancel to stop the outpainting workflow.")
             return STAGE_1
 
 
@@ -237,5 +233,6 @@ outpainting_handler = ConversationHandler(
     name="OutpaintingBot",
     persistent=True,
     block=False,
-    fallbacks=[CommandHandler("cancel", outpainting_process_terminate)],
+    fallbacks=[CommandHandler("cancel", outpainting_process_terminate),
+               CommandHandler("outpainting", outpainting_process_start)],
 )
