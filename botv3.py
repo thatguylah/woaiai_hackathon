@@ -111,7 +111,8 @@ def main(dev_mode) -> None:
     conv_handler = ConversationHandler(entry_points = [CommandHandler('start', start_command), 
                                                        CommandHandler('editcompany', edit_company_command), 
                                                        CommandHandler('choosetheme', get_previous_themes),
-                                                       CommandHandler('choosedesign', get_previous_image_designs)], 
+                                                       CommandHandler('choosedesign', get_previous_image_designs),
+                                                       outpainting_handler], 
                                        states = {RESET_CHAT: [MessageHandler(filters.Regex('(Generate Image Again)'), generate_image, block = False), 
                                                               MessageHandler(filters.Regex('(Generate New Image: Step-by-step Process)'), validate_user, block = False),
                                                               MessageHandler(filters.Regex('(Generate New Image: Use Custom Prompt)'), get_user_custom_image_prompt, block = False),
@@ -149,7 +150,6 @@ def main(dev_mode) -> None:
     # add handlers to application
     application.add_handler(conv_handler)
     application.add_handler(ping_handler)
-    application.add_handler(outpainting_handler)
     
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
