@@ -16,7 +16,7 @@ import argparse
 import os
 from huggingface_hub import InferenceClient
 from api.conversation import *
-from api.outpainting import outpainting_handler
+from api.inpainting import inpainting_handler
 
 from telegram import __version__ as TG_VER
 from telegram import ForceReply, Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
@@ -112,7 +112,7 @@ def main(dev_mode) -> None:
                                                        CommandHandler('editcompany', edit_company_command), 
                                                        CommandHandler('choosetheme', get_previous_themes),
                                                        CommandHandler('choosedesign', get_previous_image_designs),
-                                                       outpainting_handler], 
+                                                       inpainting_handler], 
                                        states = {RESET_CHAT: [MessageHandler(filters.Regex('(Generate Image Again)'), generate_image, block = False), 
                                                               MessageHandler(filters.Regex('(Generate New Image: Step-by-step Process)'), validate_user, block = False),
                                                               MessageHandler(filters.Regex('(Generate New Image: Use Custom Prompt)'), get_user_custom_image_prompt, block = False),
