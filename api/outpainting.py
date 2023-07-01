@@ -63,7 +63,7 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
 
 async def outpainting_process_terminate(update: Update, context: ContextTypes):
     await update.message.reply_text(
-        "You have terminated the outpainting workflow. Please send /outpainting to start again or send /start for a new conversation."
+        "You have terminated the outpainting workflow.\n\nPlease send /outpainting to start again or send /start for a new conversation."
     )
     return ConversationHandler.END
 
@@ -138,7 +138,7 @@ class ImageProcessor:
             await self.upload_to_s3(file_stream, self.bucket_name, s3_key)
 
         else:
-            await update.message.reply_text("Please upload an image 🙂")
+            await update.message.reply_text("Please upload an image 🙂\n\nSend /cancel to exit the outpainting workflow.")
             return self.state
 
         self.base_image_s3_key = s3_key
@@ -201,7 +201,7 @@ class ImageProcessor:
             except Exception as e:
                 logger.log(logging.ERROR, f"Exception caught here:{e}")
                 await update.message.reply_text(
-                    "Sorry, your job has failed to submit, please try again or contact woaiai. Send /outpainting to process a new image or /start for a new conversation."
+                    "Sorry, your job has failed to submit, please try again or contact woaiai.\n\nSend /outpainting to process a new image or /start for a new conversation."
                 )
                 return ConversationHandler.END
 
