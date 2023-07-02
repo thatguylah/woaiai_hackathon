@@ -51,7 +51,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-(STAGE_0, STAGE_1) = range(13,15)
+STAGE_0 = 13
 
 
 async def outpainting_process_start(update: Update, context: ContextTypes):
@@ -60,9 +60,23 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
         "base_image_s3_key": None,
         "outpaint_direction": None
     }
+
+    buttons_lst = ['Left', 'Right', 'Top', 'Bottom']
+    output_text = 'Hi! You have triggered an /outpainting workflow. Send /cancel to exit the outpainting workflow.\n\nFirst, select which direction you would like to outpaint / expand your image.'
+
+    # ask user to select one of the proposed themes
+    await update.message.reply_html(
+                                    f'{output_text}',
+                                    reply_markup = ReplyKeyboardMarkup(buttons_lst, resize_keyboard = True),
+                                    )      
+    print("selected direction", selected_direction)
+    selected_direction = update.message.text
+    context.user_data['image_info']['outpaint_direction'] = selected_direction.lower()
+
     await update.message.reply_text(
-        "Hi! You have triggered an /outpainting workflow.\n\nSend /cancel to exit the outpainting workflow."
+        "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption."
     )
+
     return STAGE_0
 
 
@@ -73,25 +87,6 @@ async def outpainting_process_terminate(update: Update, context: ContextTypes):
         "You have terminated the outpainting workflow.\n\nPlease send /outpainting to start again or send /start for a new conversation."
     )
     return ConversationHandler.END
-
-
-async def get_outpainting_direction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    buttons_lst = ['Left', 'Right', 'Top', 'Bottom']
-    output_text = 'First, select which direction you would like to outpaint / expand your image.'
-
-    # ask user to select one of the proposed themes
-    await update.message.reply_html(
-                                    f'{output_text}',
-                                    reply_markup = ReplyKeyboardMarkup(buttons_lst, resize_keyboard = True),
-                                    )      
-    selected_direction = update.message.text
-    context.user_data['image_info']['outpaint_direction'] = selected_direction.lower()
-
-    await update.message.reply_text(
-        "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption."
-    )                     
-
-    return STAGE_1
 
 
 class ImageProcessor:
@@ -196,12 +191,6 @@ outpainting_handler = ConversationHandler(
     entry_points=[CommandHandler("outpainting", outpainting_process_start)],
     states={
         STAGE_0: [
-            MessageHandler(filters.Regex('Left'), get_outpainting_direction, block = False), 
-            MessageHandler(filters.Regex('Right'), get_outpainting_direction, block = False), 
-            MessageHandler(filters.Regex('Top'), get_outpainting_direction, block = False), 
-            MessageHandler(filters.Regex('Bottom'), get_outpainting_direction, block = False), 
-        ],
-        STAGE_1: [
             MessageHandler(
                 filters.PHOTO,
                 image_processor_instance.outpainting_process_image,
