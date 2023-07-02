@@ -162,7 +162,7 @@ class ImageProcessor:
             s3_key = f"input/outpaint-image/{clean_username}/{file_name}"
             await self.upload_to_s3(file_stream, self.bucket_name, s3_key)
             # self.mask_image_s3_key = s3_key
-            context.user_data["image_info"]["mask_image_s3_key"] = s3_key
+            context.user_data["image_info"]["base_image_s3_key"] = s3_key
 
             try:
                 MessageBody = update_as_dict
