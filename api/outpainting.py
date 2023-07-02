@@ -16,13 +16,17 @@ import io
 from .utils import run_in_threadpool_decorator
 
 from telegram import __version__ as TG_VER
-from telegram import Update
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
     CommandHandler,
     MessageHandler,
     filters,
+)
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
 )
 
 try:
@@ -51,29 +55,35 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-UPLOAD_IMAGE, PROCESS_IMAGE = range(13,15)
+UPLOAD_IMAGE, PROCESS_IMAGE = range(13, 15)
 
 
 async def outpainting_process_start(update: Update, context: ContextTypes):
     context.user_data["editing_image_job"] = {
         "job_type": "outpainting",
         "base_image_s3_key": None,
-        "outpaint_direction": None
+        "outpaint_direction": None,
     }
 
-    buttons_lst = ['Left', 'Right', 'Top', 'Bottom']
-    output_text = 'Hi! You have triggered an /outpainting workflow.\n\nWhich direction would you like to outpaint / expand for your image?\nSelect an option below.\n\nSend /cancel to exit the outpainting workflow.'
+    buttons_lst = [["Left"], ["Right"], ["Top"], ["Bottom"]]
+    output_text = "Hi! You have triggered an /outpainting workflow. Send /cancel to exit the outpainting workflow.\n\nFirst, select which direction you would like to outpaint / expand your image."
 
     # ask user to select one of the options
     await update.message.reply_html(
-                                    f'{output_text}',
-                                    reply_markup = ReplyKeyboardMarkup(buttons_lst, resize_keyboard = True),
-                                    )
-    return UPLOAD_IMAGE 
+        f"{output_text}",
+        reply_markup=ReplyKeyboardMarkup(
+            buttons_lst, resize_keyboard=True, one_time_keyboard=True
+        ),
+    )
+    return UPLOAD_IMAGE
+
 
 async def outpainting_process_upload_image(update: Update, context: ContextTypes):
     selected_direction = update.message.text
-    context.user_data['editing_image_job']['outpaint_direction'] = selected_direction.lower()
+    logger.log(logging.INFO, f"selected_direction: {selected_direction}")
+    context.user_data["editing_image_job"][
+        "outpaint_direction"
+    ] = selected_direction.lower()
 
     await update.message.reply_text(
         "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption.\n\nSend /cancel to exit the outpainting workflow."
@@ -119,10 +129,7 @@ class ImageProcessor:
         logger.log(logging.INFO, f"response:{response}")
         return 0
 
-
-    async def outpainting_process_image(
-        self, update: Update, context: ContextTypes
-    ):
+    async def outpainting_process_image(self, update: Update, context: ContextTypes):
         # self.state = ConversationHandler.END
 
         update_as_dict = update.to_dict()
@@ -163,9 +170,9 @@ class ImageProcessor:
 
             try:
                 MessageBody = update_as_dict
-                MessageBody["base_image_s3_key"] = context.user_data["editing_image_job"][
-                    "base_image_s3_key"
-                ]
+                MessageBody["base_image_s3_key"] = context.user_data[
+                    "editing_image_job"
+                ]["base_image_s3_key"]
 
                 await self.put_to_sqs(MessageBody)
 
@@ -194,10 +201,11 @@ outpainting_handler = ConversationHandler(
     states={
         UPLOAD_IMAGE: [
             MessageHandler(
-                filters.Regex('(Left|Right|Top|Bottom)'),
+                filters.Regex("(Left|Right|Top|Bottom)"),
                 outpainting_process_upload_image,
-                block = False
-        )],
+                block=False,
+            )
+        ],
         PROCESS_IMAGE: [
             MessageHandler(
                 filters.PHOTO,
