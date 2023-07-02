@@ -211,7 +211,7 @@ async def validate_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             del context.user_data['company']
             
         await update.message.reply_html(
-                                        f'To edit an existing image, send one of the commands below:\n\n/inpainting - Replace/remove any object from an image\n/outpainting - Extend an image outwards <strong>(not available for demo)</strong>\n\nSend /start for a new conversation.',
+                                        f'To edit an existing image, send one of the commands below:\n\n/inpainting - Replace/remove any object from an image\n/outpainting - Extend an image outwards\n\nSend /start for a new conversation.',
                                         reply_markup = ReplyKeyboardRemove(),
                                         )
     return context.user_data['state_for_assistance_type']
