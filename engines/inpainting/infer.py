@@ -59,8 +59,8 @@ def resize_image(pil_image, width=None, height=None):
     if height and width: 
         return pil_image.resize((width, height), Image.ANTIALIAS)
     else:
-        max_width = 800
-        max_height = 800
+        max_width = 640
+        max_height = 640
         im_width = pil_image.size[0]
         im_height = pil_image.size[1]
         if im_width <= max_width and im_height <= max_height: 
@@ -251,52 +251,70 @@ def handler(event, context):
     print("Received event", event)
     for record in event["Records"]:
         payload = json.loads(record["body"])
-        print("Received queue msg", payload)
-        base_key = payload["base_image_s3_key"]
-        masked_key = payload["mask_image_s3_key"]
+
+        details = payload["editing_image_job"]
+        job_type = details["job_type"]
+        base_key = details["base_image_s3_key"]
+
+        if job_type == "inpainting":
+            masked_key = details["mask_image_s3_key"]
+        elif job_type == "outpainting":
+            outpaint_direction = details["outpaint_direction"]
+
         if "caption" in payload["message"].keys():
             text_prompt = payload["message"]["caption"]
         else:
             text_prompt = ""
+        chat_id = payload["message"]["chat"]["id"]
         base_image_basename = base_key.split("/")[-1].split(".")[0]
         results_key_prefix = f"output/{base_image_basename}"
 
-        try:
-            image = remove(base_key, masked_key, results_key_prefix, text_prompt)
-            print("Generated removal image")
-        except ValueError as e: 
-            if str(e) == "Input images must have the same dimensions.":
-                tele_message = "Sorry, your job has failed as both images must be of the same dimensions. We encourage you to use Telegram's built-in brush tool to generate masked images. This conversation is over now, please type /inpainting to start a new one. Or type /start for a guided workflow."
-                telebot_text_response = send_message_telebot(tele_message, payload["message"]["chat"]["id"])
+        if job_type == "inpainting":
+            try:
+                image = remove(base_key, masked_key, results_key_prefix, text_prompt)
+                print("Generated removal image")
+            except ValueError as e: 
+                if str(e) == "Input images must have the same dimensions.":
+                    tele_message = "Sorry, your job has failed as both images must be of the same dimensions. We encourage you to use Telegram's built-in brush tool to generate masked images. This conversation is over now, please type /inpainting to start a new one. Or type /start for a guided workflow."
+                    telebot_text_response = send_message_telebot(tele_message, chat_id)
+                    return {
+                        'statusCode': 501,
+                        'body': json.dumps('Input images do not have same dimensions.')
+                    }
+            except Exception as e:
+                tele_message = "Sorry, your job has failed, please try again or contact woaiai. This conversation is over, please restart"
+                telebot_text_response = send_message_telebot(tele_message, chat_id)
+                print("Error in removal", e)
                 return {
-                    'statusCode': 501,
-                    'body': json.dumps('Input images do not have same dimensions.')
+                    'statusCode': 500,
+                    'body': json.dumps('Error in processing removal.')
                 }
-        except Exception as e:
-            tele_message = "Sorry, your job has failed, please try again or contact woaiai. This conversation is over, please restart"
-            telebot_text_response = send_message_telebot(tele_message, payload["message"]["chat"]["id"])
-            print("Error in removal", e)
-            return {
-                'statusCode': 500,
-                'body': json.dumps('Error in processing removal.')
-            }
 
-        # save_response = save_image_s3(image, results_key_prefix)
-        # print("Done saving s3 result")
-        print("Sending inpainting image to Telebot")
-        np_image = (np.array(image)).astype(np.uint8)
-        img = Image.fromarray(np_image)
-        telebot_response = send_photo_telebot(img, payload["message"]["chat"]["id"])
-
+            # save_response = save_image_s3(image, results_key_prefix)
+            # print("Done saving s3 result")
+            print("Sending inpainting image to Telebot")
+            np_image = (np.array(image)).astype(np.uint8)
+            img = Image.fromarray(np_image)
+            telebot_response = send_photo_telebot(img, payload["message"]["chat"]["id"])
         
-        outpainted_image = outpaint(payload["base_image_s3_key"], text_prompt, "right")
-        print("Sending outpainting image to Telebot")
-        telebot_outpaint_response = send_photo_telebot(outpainted_image, payload["message"]["chat"]["id"])
+        elif job_type == "outpainting":
+            try:
+                outpainted_image = outpaint(base_key, text_prompt, outpaint_direction)
+                print("Sending outpainting image to Telebot")
+                telebot_outpaint_response = send_photo_telebot(outpainted_image, payload["message"]["chat"]["id"])
+            except Exception as e:
+                tele_message = "Sorry, your job has failed, please try again or contact woaiai. This conversation is over, please restart"
+                telebot_text_response = send_message_telebot(tele_message, chat_id)
+                print("Error in outpainting", e)
+                return {
+                    'statusCode': 500,
+                    'body': json.dumps('Error in processing outpainting.')
+                }
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps('Image generated')
-        }
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Image generated')
+            }
 
         
 

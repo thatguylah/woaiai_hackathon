@@ -28,7 +28,7 @@ aws ecr get-login-password --region ap-southeast-1 --profile woaiai | docker log
 ```
 - Tag local Docker image
 ```
-docker tag woaiai-removal 159762733383.dkr.ecr.ap-southeast-1.amazonaws.com/woaiai-removal-lambda
+docker tag woaiai-removal-lambda 159762733383.dkr.ecr.ap-southeast-1.amazonaws.com/woaiai-removal-lambda
 ```
 - Push local Docker image to ECR
 ```
