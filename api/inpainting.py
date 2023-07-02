@@ -55,6 +55,10 @@ logger = logging.getLogger(__name__)
 
 
 async def inpainting_process_start(update: Update, context: ContextTypes):
+    context.user_data["image_info"] = {
+        "base_image_s3_key": None,
+        "mask_image_s3_key": None,
+    }
     await update.message.reply_text(
         "Hi! You have triggered an /inpainting workflow, please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n2. Once base image is received, upload a masked image of the same base image\n\nSend /cancel to exit the inpainting workflow."
     )
@@ -62,6 +66,8 @@ async def inpainting_process_start(update: Update, context: ContextTypes):
 
 
 async def inpainting_process_terminate(update: Update, context: ContextTypes):
+    del context.user_data["image_info"]
+
     await update.message.reply_text(
         "You have terminated the inpainting workflow.\n\nPlease send /inpainting to start again or send /start for a new conversation."
     )
@@ -74,11 +80,10 @@ class ImageProcessor:
         self.s3_client = boto3.client("s3")
         self.sqs_client = boto3.client("sqs", region_name="ap-southeast-1")
         self.QueueUrl = QUEUE_URL = config["SQS_URL"]
-        self.base_image_s3_key = None
-        self.mask_image_s3_key = None
+        # self.base_image_s3_key = None
+        # self.mask_image_s3_key = None
 
         self.bucket_name = BUCKET_NAME = config["BUCKET_NAME"]
-        self.destination_path = None
         self.state = None
 
     @run_in_threadpool_decorator(name="aws_io")
@@ -100,9 +105,6 @@ class ImageProcessor:
     async def inpainting_process_base_image(
         self, update: Update, context: ContextTypes
     ):
-        self.destination_path = "input/base-image"
-        self.state = STAGE_1
-
         update_as_dict = update.to_dict()
         update_as_json = json.dumps(update_as_dict)
 
@@ -134,14 +136,18 @@ class ImageProcessor:
             await file.download_to_memory(out=file_stream)
             file_stream.seek(0)  # Reset file stream buffer pointer to start of buffer
 
-            s3_key = f"{self.destination_path}/{clean_username}/{file_name}"
+            s3_key = f"input/base-image/{clean_username}/{file_name}"
             await self.upload_to_s3(file_stream, self.bucket_name, s3_key)
 
         else:
-            await update.message.reply_text("Please upload an image 🙂\n\nSend /cancel to exit the inpainting workflow.")
-            return self.state
+            await update.message.reply_text(
+                "Please upload an image 🙂\n\nSend /cancel to exit the inpainting workflow."
+            )
+            return STAGE_0
 
-        self.base_image_s3_key = s3_key
+        # self.base_image_s3_key = s3_key
+        context.user_data["image_info"]["base_image_s3_key"] = s3_key
+
         await update.message.reply_text(
             "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change.\n\nOptionally, type out a caption to guide the removal based on what you'd like the masked region to be replaced with (Eg. 'Blue Background', 'A tree')\n\nSend /cancel to exit the inpainting workflow."
         )
@@ -150,8 +156,7 @@ class ImageProcessor:
     async def inpainting_process_mask_image(
         self, update: Update, context: ContextTypes
     ):
-        self.destination_path = "input/mask-image"
-        self.state = ConversationHandler.END
+        # self.state = ConversationHandler.END
 
         update_as_dict = update.to_dict()
         update_as_json = json.dumps(update_as_dict)
@@ -184,13 +189,19 @@ class ImageProcessor:
             await file.download_to_memory(out=file_stream)
             file_stream.seek(0)  # Reset file stream buffer pointer to start of buffer
 
-            s3_key = f"{self.destination_path}/{clean_username}/{file_name}"
+            s3_key = f"input/mask-image/{clean_username}/{file_name}"
             await self.upload_to_s3(file_stream, self.bucket_name, s3_key)
-            self.mask_image_s3_key = s3_key
+            # self.mask_image_s3_key = s3_key
+            context.user_data["image_info"]["mask_image_s3_key"] = s3_key
+
             try:
                 MessageBody = update_as_dict
-                MessageBody["base_image_s3_key"] = self.base_image_s3_key
-                MessageBody["mask_image_s3_key"] = self.mask_image_s3_key
+                MessageBody["base_image_s3_key"] = context.user_data["image_info"][
+                    "base_image_s3_key"
+                ]
+                MessageBody["mask_image_s3_key"] = context.user_data["image_info"][
+                    "mask_image_s3_key"
+                ]
 
                 await self.put_to_sqs(MessageBody)
 
@@ -206,7 +217,9 @@ class ImageProcessor:
                 return ConversationHandler.END
 
         else:
-            await update.message.reply_text("Please upload an image 🙂\n\nSend /cancel to stop the inpainting workflow.")
+            await update.message.reply_text(
+                "Please upload an image 🙂\n\nSend /cancel to stop the inpainting workflow."
+            )
             return STAGE_1
 
 
@@ -233,6 +246,8 @@ inpainting_handler = ConversationHandler(
     name="InpaintingBot",
     persistent=True,
     block=False,
-    fallbacks=[CommandHandler("cancel", inpainting_process_terminate),
-               CommandHandler("inpainting", inpainting_process_start)],
+    fallbacks=[
+        CommandHandler("cancel", inpainting_process_terminate),
+        CommandHandler("inpainting", inpainting_process_start),
+    ],
 )
