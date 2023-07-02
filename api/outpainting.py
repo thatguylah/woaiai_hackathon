@@ -86,7 +86,7 @@ async def outpainting_process_upload_image(update: Update, context: ContextTypes
     ] = selected_direction.lower()
 
     await update.message.reply_text(
-        "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption.\n\nSend /cancel to exit the outpainting workflow."
+        "Upload the image you would like to outpaint / expand. Type out what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption.\n\nSend /cancel to exit the outpainting workflow."
     )
 
     return PROCESS_IMAGE
