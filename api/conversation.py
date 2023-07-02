@@ -834,7 +834,7 @@ async def generate_prompt_and_image(update: Update, context: ContextTypes.DEFAUL
     You are a digital marketing AI assistant for '''+ company + r''' in Singapore. 
     Your task is to describe the image based on specified design attributes such as type, description 
     and styling of image which will be given in a JSON format.
-    Follow the description structure as the list of sample image descriptions provided which are delimited by ```.
+    Follow the description structure of the list of sample image descriptions provided which are delimited by ```.
     Then, given the design attributes delimited by ``` , 
     describe the image as a prompt in a JSON format: {'prompt': generated_output}
     where the generated output will replace the space of 'generated_output'.
