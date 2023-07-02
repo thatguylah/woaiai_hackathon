@@ -66,7 +66,7 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
     }
 
     buttons_lst = [["Left"], ["Right"], ["Top"], ["Bottom"]]
-    output_text = 'Hi! You have triggered an /outpainting workflow.\n\nWhich direction would you like to outpaint / expand for your image?\nSelect an option below.\n\nSend /cancel to exit the outpainting workflow.'
+    output_text = 'Hi! You have triggered an /outpainting workflow.\n\nWhich direction would you like to outpaint / expand your image?\nSelect an option below.\n\nSend /cancel to exit the outpainting workflow.'
 
     # ask user to select one of the options
     await update.message.reply_html(
