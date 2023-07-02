@@ -51,7 +51,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-STAGE_0 = 13
+UPLOAD_IMAGE, PROCESS_IMAGE = range(13,15)
 
 
 async def outpainting_process_start(update: Update, context: ContextTypes):
@@ -62,22 +62,24 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
     }
 
     buttons_lst = ['Left', 'Right', 'Top', 'Bottom']
-    output_text = 'Hi! You have triggered an /outpainting workflow. Send /cancel to exit the outpainting workflow.\n\nFirst, select which direction you would like to outpaint / expand your image.'
+    output_text = 'Hi! You have triggered an /outpainting workflow.\n\nWhich direction would you like to outpaint / expand for your image?\nSelect an option below.\n\nSend /cancel to exit the outpainting workflow.'
 
-    # ask user to select one of the proposed themes
+    # ask user to select one of the options
     await update.message.reply_html(
                                     f'{output_text}',
                                     reply_markup = ReplyKeyboardMarkup(buttons_lst, resize_keyboard = True),
-                                    )      
-    print("selected direction", selected_direction)
+                                    )
+    return UPLOAD_IMAGE 
+
+async def outpainting_process_upload_image(update: Update, context: ContextTypes):
     selected_direction = update.message.text
     context.user_data['editing_image_job']['outpaint_direction'] = selected_direction.lower()
 
     await update.message.reply_text(
-        "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption."
+        "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption.\n\nSend /cancel to exit the outpainting workflow."
     )
 
-    return STAGE_0
+    return PROCESS_IMAGE
 
 
 async def outpainting_process_terminate(update: Update, context: ContextTypes):
@@ -190,7 +192,13 @@ image_processor_instance = ImageProcessor()
 outpainting_handler = ConversationHandler(
     entry_points=[CommandHandler("outpainting", outpainting_process_start)],
     states={
-        STAGE_0: [
+        UPLOAD_IMAGE: [
+            MessageHandler(
+                filters.Regex('(Left|Right|Top|Bottom)'),
+                outpainting_process_upload_image,
+                block = False
+        )],
+        PROCESS_IMAGE: [
             MessageHandler(
                 filters.PHOTO,
                 image_processor_instance.outpainting_process_image,
