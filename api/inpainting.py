@@ -51,7 +51,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-(STAGE_0, STAGE_1) = range(2)
+(STAGE_0, STAGE_1) = range(11,13)
 
 
 async def inpainting_process_start(update: Update, context: ContextTypes):
