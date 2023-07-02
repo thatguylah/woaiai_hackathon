@@ -55,7 +55,7 @@ STAGE_0 = 13
 
 
 async def outpainting_process_start(update: Update, context: ContextTypes):
-    context.user_data["image_info"] = {
+    context.user_data["editing_image_job"] = {
         "job_type": "outpainting",
         "base_image_s3_key": None,
         "outpaint_direction": None
@@ -71,7 +71,7 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
                                     )      
     print("selected direction", selected_direction)
     selected_direction = update.message.text
-    context.user_data['image_info']['outpaint_direction'] = selected_direction.lower()
+    context.user_data['editing_image_job']['outpaint_direction'] = selected_direction.lower()
 
     await update.message.reply_text(
         "Upload the image you would like to outpaint / expand. Describe what you would like the expanded regions to contain (e.g., purple skies, blue background) in the caption."
@@ -81,7 +81,7 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
 
 
 async def outpainting_process_terminate(update: Update, context: ContextTypes):
-    del context.user_data["image_info"]
+    del context.user_data["editing_image_job"]
 
     await update.message.reply_text(
         "You have terminated the outpainting workflow.\n\nPlease send /outpainting to start again or send /start for a new conversation."
@@ -157,11 +157,11 @@ class ImageProcessor:
             s3_key = f"input/outpaint-image/{clean_username}/{file_name}"
             await self.upload_to_s3(file_stream, self.bucket_name, s3_key)
             # self.mask_image_s3_key = s3_key
-            context.user_data["image_info"]["base_image_s3_key"] = s3_key
+            context.user_data["editing_image_job"]["base_image_s3_key"] = s3_key
 
             try:
                 MessageBody = update_as_dict
-                MessageBody["base_image_s3_key"] = context.user_data["image_info"][
+                MessageBody["base_image_s3_key"] = context.user_data["editing_image_job"][
                     "base_image_s3_key"
                 ]
 
