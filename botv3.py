@@ -131,7 +131,7 @@ def main(dev_mode) -> None:
             CommandHandler("editcompany", edit_company_command),
             CommandHandler("choosetheme", get_previous_themes),
             CommandHandler("choosedesign", get_previous_image_designs),
-            inpainting_handler,
+            # inpainting_handler,
             outpainting_handler,
         ],
         states={
