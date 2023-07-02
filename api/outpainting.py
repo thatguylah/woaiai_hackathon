@@ -66,7 +66,7 @@ async def outpainting_process_start(update: Update, context: ContextTypes):
     }
 
     buttons_lst = [["Left"], ["Right"], ["Top"], ["Bottom"]]
-    output_text = 'Hi! You have triggered an /outpainting workflow.\n\nWhich direction would you like to outpaint / expand your image?\nSelect an option below.\n\nSend /cancel to exit the outpainting workflow.'
+    output_text = "Hi! You have triggered an /outpainting workflow.\n\nWhich direction would you like to outpaint / expand your image?\nSelect an option below.\n\nSend /cancel to exit the outpainting workflow."
 
     # ask user to select one of the options
     await update.message.reply_html(
@@ -170,9 +170,9 @@ class ImageProcessor:
 
             try:
                 MessageBody = update_as_dict
-                MessageBody["base_image_s3_key"] = context.user_data[
+                MessageBody["editing_image_job"] = context.user_data[
                     "editing_image_job"
-                ]["base_image_s3_key"]
+                ]
 
                 await self.put_to_sqs(MessageBody)
 
