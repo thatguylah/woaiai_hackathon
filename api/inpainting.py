@@ -51,7 +51,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-(STAGE_0, STAGE_1) = range(11,13)
+(STAGE_0, STAGE_1) = range(11, 13)
 
 
 async def inpainting_process_start(update: Update, context: ContextTypes):
@@ -197,12 +197,7 @@ class ImageProcessor:
 
             try:
                 MessageBody = update_as_dict
-                MessageBody["base_image_s3_key"] = context.user_data["image_info"][
-                    "base_image_s3_key"
-                ]
-                MessageBody["mask_image_s3_key"] = context.user_data["image_info"][
-                    "mask_image_s3_key"
-                ]
+                MessageBody["editing_image_job"] = context.user_data["image_info"]
 
                 await self.put_to_sqs(MessageBody)
 
