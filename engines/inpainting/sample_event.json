@@ -1,0 +1,78 @@
+{
+    "Records": [
+        {
+            "messageId": "470e4c7c-6b43-46c8-a471-1e1fb0187084", 
+            "receiptHandle": "AQEB320XSyNlpsNho8tC8/qA/mF7hDoiTHAbj0fjhbzvT/KkO2ZX/FzCBY1n+w9PeNZ36seluExL8Gvrs9qcZbeLc2J14N8QqcuAPgfK2eTJNVnF1dCsEYrJRaGDcYNgFIR2z577wlWy8sJKVXO/2V2pMhvo8rT5Xm74nCCoUdZ7MxcBe2BJWu5ZhHWynPPed7hD0tFYiAVQMKadBgjaNv3ZsqChjAnvODmE+WaX0r9PanV41HFiUyqgnVVmMrMDZKRH08F7ItieFLmJKJ6+ltTXyQnRqZijrfQHW26TDAyvRepmPpj8jCR0eicsL10waq4lSFHLhrMpvSGDipryeHZXrWu8y1HnXIYqwaAGARnOwsqFtsNgSvhD3gQf71jwLvMQR6b+j/oIUSBk4dtJNWE4RBj/SfrPypCmXccRssFFefI=", 
+            "body": {
+                "update_id": 703295162, 
+                "message": {
+                    "chat": {
+                        "id": 332090205, 
+                        "type": "private", 
+                        "first_name": "cyk"
+                    }, 
+                    "group_chat_created": false, 
+                    "message_id": 1156, 
+                    "delete_chat_photo": false, 
+                    "date": 1687924223, 
+                    "supergroup_chat_created": false, 
+                    "photo": [
+                        {
+                            "width": 90, 
+                            "height": 46, 
+                            "file_id": "AgACAgUAAxkBAAIEhGSbrf_MLeQi2Z8RJQFmR8z8iQ1wAALsujEbudrYVD0dBD2GUO7aAQADAgADcwADLwQ", 
+                            "file_size": 945, 
+                            "file_unique_id": "AQAD7LoxG7na2FR4"
+                            
+                        }, 
+                        {
+                            "width": 320, 
+                            "height": 163, 
+                            "file_id": "AgACAgUAAxkBAAIEhGSbrf_MLeQi2Z8RJQFmR8z8iQ1wAALsujEbudrYVD0dBD2GUO7aAQADAgADbQADLwQ", 
+                            "file_size": 11423,
+                            "file_unique_id": "AQAD7LoxG7na2FRy"
+                            
+                        }, 
+                        {
+                            "width": 800, 
+                            "height": 407, 
+                            "file_id": "AgACAgUAAxkBAAIEhGSbrf_MLeQi2Z8RJQFmR8z8iQ1wAALsujEbudrYVD0dBD2GUO7aAQADAgADeAADLwQ", 
+                            "file_size": 47471, 
+                            "file_unique_id": "AQAD7LoxG7na2FR9"
+                            
+                        }, 
+                        {
+                            "width": 1155, 
+                            "height": 588, 
+                            "file_id": "AgACAgUAAxkBAAIEhGSbrf_MLeQi2Z8RJQFmR8z8iQ1wAALsujEbudrYVD0dBD2GUO7aAQADAgADeQADLwQ", 
+                            "file_size": 63016, 
+                            "file_unique_id": "AQAD7LoxG7na2FR-"
+                            
+                        }
+                        ], 
+                    "channel_chat_created": false, 
+                    "from": {
+                        "is_bot": false, 
+                        "first_name": "cyk", 
+                        "id": 332090205, 
+                        "language_code": 
+                        "en"
+                    }
+                }, 
+                "base_image_s3_key": "input/base-image/cyk/original.jpg", 
+                "mask_image_s3_key": "input/mask-image/cyk/masked.jpg"
+            }, 
+            "attributes": {
+                "ApproximateReceiveCount": "3225", 
+                "SentTimestamp": "1687924224741", 
+                "SenderId": "AIDASKMUZ3FDQUNBBWGD3", 
+                "ApproximateFirstReceiveTimestamp": "1687924224741"
+            }, 
+            "messageAttributes": {}, 
+            "md5OfBody": "a880124df20544c9641adce3192090fa", 
+            "eventSource": "aws:sqs", 
+            "eventSourceARN": "arn:aws:sqs:ap-southeast-1:159762733383:msg_incoming_queue", 
+            "awsRegion": "ap-southeast-1"
+        }
+    ]
+}

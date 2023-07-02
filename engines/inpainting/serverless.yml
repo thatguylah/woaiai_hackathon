@@ -1,0 +1,31 @@
+service: woaiai-removal
+
+provider:
+  name: aws
+  region: ap-southeast-1
+  runtime: python3.8
+  role: arn:aws:iam::159762733383:role/model-lambda-role
+  environment:
+    S3_BUCKET: ${self:custom.env.bucket}
+    SM_ENDPOINT: ${self:custom.env.sm_endpoint}
+    TELEBOT_TOKEN: ${self:custom.env.telebot_token}
+    REPLICATE_TOKEN: ${self:custom.env.replicate_token}
+
+functions:
+  remove:
+    image: 159762733383.dkr.ecr.ap-southeast-1.amazonaws.com/woaiai-removal-lambda:latest
+    memorySize: 3008
+    timeout: 900
+    events:
+      - sqs:
+          arn: arn:aws:sqs:ap-southeast-1:159762733383:msg_incoming_queue
+
+custom:
+  env: ${file(./env.yml)}
+
+package:
+  exclude:
+    - node_modules/**
+    - stable-diffusion-2-inpainting/**
+    - old/**
+    - test_images/**
