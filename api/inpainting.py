@@ -60,7 +60,7 @@ async def inpainting_process_start(update: Update, context: ContextTypes):
         "mask_image_s3_key": None,
     }
     await update.message.reply_text(
-        "Hi! You have triggered an /inpainting workflow, please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n2. Once base image is received, upload a masked image of the same base image\n\nSend /cancel to exit the inpainting workflow."
+        "Hi! You have triggered an /inpainting workflow, please follow the instructions below:\n\n1. Upload a base image you would like to outpaint\n2. Once base image is received, instructions will be provided to upload a masked image of the same based image\n\nSend /cancel to exit the inpainting workflow."
     )
     return STAGE_0
 
