@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 
 async def inpainting_process_start(update: Update, context: ContextTypes):
-    context.user_data["image_info"] = {
+    context.user_data["inpainting_image_job"] = {
         "job_type": "inpainting",
         "base_image_s3_key": None,
         "mask_image_s3_key": None,
@@ -67,7 +67,7 @@ async def inpainting_process_start(update: Update, context: ContextTypes):
 
 
 async def inpainting_process_terminate(update: Update, context: ContextTypes):
-    del context.user_data["image_info"]
+    del context.user_data["inpainting_image_job"]
 
     await update.message.reply_text(
         "You have terminated the inpainting workflow.\n\nPlease send /inpainting to start again or send /start for a new conversation."
@@ -147,7 +147,7 @@ class ImageProcessor:
             return STAGE_0
 
         # self.base_image_s3_key = s3_key
-        context.user_data["image_info"]["base_image_s3_key"] = s3_key
+        context.user_data["inpainting_image_job"]["base_image_s3_key"] = s3_key
 
         await update.message.reply_text(
             "Your base image has been received!🙂 Please use telegram's inbuilt brush feature to brush over the portion you would like to change.\n\nOptionally, type out a caption to guide the removal based on what you'd like the masked region to be replaced with (Eg. 'Blue Background', 'A tree')\n\nSend /cancel to exit the inpainting workflow."
@@ -193,11 +193,13 @@ class ImageProcessor:
             s3_key = f"input/mask-image/{clean_username}/{file_name}"
             await self.upload_to_s3(file_stream, self.bucket_name, s3_key)
             # self.mask_image_s3_key = s3_key
-            context.user_data["image_info"]["mask_image_s3_key"] = s3_key
+            context.user_data["inpainting_image_job"]["mask_image_s3_key"] = s3_key
 
             try:
                 MessageBody = update_as_dict
-                MessageBody["editing_image_job"] = context.user_data["image_info"]
+                MessageBody["editing_image_job"] = context.user_data[
+                    "inpainting_image_job"
+                ]
 
                 await self.put_to_sqs(MessageBody)
 
