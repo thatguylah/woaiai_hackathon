@@ -207,7 +207,7 @@ class ImageProcessor:
                 await self.put_to_sqs(MessageBody)
 
                 await update.message.reply_text(
-                    "Your masked image has been received!🙂 Your request is currently being processed, the image will be sent to you once it is completed.\n\nThis conversation is over now. Please send /inpainting to process a new image or send /start for a new conversation."
+                    "Your masked image has been received!🙂 Your request is currently being processed, the image will be sent to you once it is completed.\n\nThis conversation has ended. Please send /inpainting to process a new image or send /start for a new conversation."
                 )
                 return ConversationHandler.END
             except Exception as e:
