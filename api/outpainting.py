@@ -170,7 +170,7 @@ class ImageProcessor:
                 await self.put_to_sqs(MessageBody)
 
                 await update.message.reply_text(
-                    "Your image has been received!🙂 Your request is currently being processed, the image will be sent to you once it is completed.\n\nThis conversation is over now. Please send /outpainting to process a new image or send /start for a new conversation."
+                    "Your image has been received!🙂 Your request is currently being processed, the image will be sent to you once it is completed.\n\nThis conversation has ended. Please send /outpainting to process a new image or send /start for a new conversation."
                 )
                 return ConversationHandler.END
             except Exception as e:
@@ -184,7 +184,7 @@ class ImageProcessor:
             await update.message.reply_text(
                 "Please upload an image 🙂\n\nSend /cancel to stop the outpainting workflow."
             )
-            return STAGE_1
+            return PROCESS_IMAGE
 
 
 image_processor_instance = ImageProcessor()
