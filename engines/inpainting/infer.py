@@ -17,6 +17,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = os.environ['S3_BUCKET']
 SM_ENDPONT = os.environ['SM_ENDPOINT']
 TELEBOT_TOKEN = os.environ['TELEBOT_TOKEN']
+REPLICATE_TOKEN = os.environ['REPLICATE_TOKEN']
 
 def get_mask(image1_pil, image2_pil):
 
@@ -58,7 +59,7 @@ def resize_image(pil_image, width=None, height=None):
     if height and width: 
         return pil_image.resize((width, height), Image.ANTIALIAS)
     else:
-        max_width = 500
+        max_width = 800
         max_height = 800
         im_width = pil_image.size[0]
         im_height = pil_image.size[1]
@@ -82,12 +83,20 @@ def resize_image(pil_image, width=None, height=None):
                 return pil_image.resize((wsize, max_height), Image.ANTIALIAS)
             
 
-def pil2bytes(pil_image):
+def pil2base64(pil_image):
     buffered = BytesIO()
     pil_image.save(buffered, format="JPEG")
     img_bytes = base64.b64encode(buffered.getvalue()).decode()
     
     return img_bytes
+
+
+def pil2bytes(pil_image):
+    in_mem_file = BytesIO()
+    pil_image.save(in_mem_file, format='jpeg')
+    in_mem_file.seek(0)
+    
+    return in_mem_file
 
         
 def get_output(success_location, failure_location):
@@ -143,8 +152,8 @@ def remove(original_key, masked_key, results_key_prefix, text_prompt):
     
     payload = {
         "prompt": text_prompt,
-        "image": pil2bytes(original),
-        "mask_image": pil2bytes(mask),
+        "image": pil2base64(original),
+        "mask_image": pil2base64(mask),
         "num_inference_steps": 50,
         "guidance_scale": 7.5,
         "seed": 0
@@ -167,27 +176,66 @@ def remove(original_key, masked_key, results_key_prefix, text_prompt):
     
     return generated_images[0] # return only 1 image
 
+def outpaint(image_key, text_prompt, direction):
+    if direction not in ["left", "right", "top", "bottom"]:
+        raise ValueError("Invalid direction set for outpainting.")
+
+    image = get_image_s3(S3_BUCKET, image_key)
+    mask = Image.new('RGB', image.size, color = (255,255,255))
+    mime_type = "application/octet-stream"
+    image_str = f"data:{mime_type};base64,{pil2base64(image)}" 
+    mask_str = f"data:{mime_type};base64,{pil2base64(image)}" 
+    url = "https://replicate.com/api/models/devxpy/glid-3-xl-stable/versions/7d6a340e1815acf2b3b2ee0fcaf830fbbcd8697e9712ca63d81930c60484d2d7/predictions"
+    payload = {
+        "inputs": {
+            "prompt": text_prompt,
+            "num_inference_steps": 50,
+            "edit_image":image_str,
+            "mask":mask_str,
+            "num_outputs": 1,
+            "width": 512, # filler as param doesnt work for output size 
+            "height": 512, # filler as param doesnt work for output size
+            "outpaint": direction
+        }
+    }
+
+    headers = {
+        "Authorization": f"Token {REPLICATE_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    job = requests.post(url, headers=headers, data=json.dumps(payload).encode('utf-8'))
+    if job.status_code in [200, 201]:
+        rep_id = job.json()['uuid']
+        output_url = f"{url}/{rep_id}"
+        while True: # poll for output
+            output = requests.get(output_url, headers=headers)
+            output_json = output.json()
+            if output_json["prediction"]["status"] == "succeeded":
+                output_image_url = output_json["prediction"]["output"][0]
+                image = Image.open(requests.get(output_image_url, stream = True).raw)
+                break
+            else:
+                time.sleep(10)
+                print("Polling Replicate")
+
+    else:
+        raise Exception("Failed to post to Replicate API", output.json())
+    
+    return image
+
+
 
 def save_image_s3(image_list, key_prefix):
     np_image = (np.array(image_list)).astype(np.uint8)
     img = Image.fromarray(np_image)
 
-    in_mem_file = BytesIO()
-    img.save(in_mem_file, format='jpeg')
-    in_mem_file.seek(0)
-    response = s3.upload_fileobj(in_mem_file, S3_BUCKET, f"{key_prefix}/result.jpg")
+    response = s3.upload_fileobj(pil2bytes(img), S3_BUCKET, f"{key_prefix}/result.jpg")
 
     return response
 
-def send_photo_telebot(image_list, chat_id): 
-    np_image = (np.array(image_list)).astype(np.uint8)
-    img = Image.fromarray(np_image)
-    in_mem_file = BytesIO()
-    img.save(in_mem_file, format='jpeg')
-    in_mem_file.seek(0)
-
+def send_photo_telebot(pil_image, chat_id): 
     params = {'chat_id': chat_id}
-    files = {'photo': in_mem_file}
+    files = {'photo': pil2bytes(pil_image)}
     api_url = f"https://api.telegram.org/bot{TELEBOT_TOKEN}/sendPhoto"
     resp = requests.post(api_url, params, files=files)
     return resp
@@ -224,17 +272,26 @@ def handler(event, context):
                     'statusCode': 501,
                     'body': json.dumps('Input images do not have same dimensions.')
                 }
-            else: 
-                print("Error in removal", e)
-                return {
-                    'statusCode': 500,
-                    'body': json.dumps('Error in processing removal.')
-                }
+        except Exception as e:
+            tele_message = "Sorry, your job has failed, please try again or contact woaiai. This conversation is over, please restart"
+            telebot_text_response = send_message_telebot(tele_message, payload["message"]["chat"]["id"])
+            print("Error in removal", e)
+            return {
+                'statusCode': 500,
+                'body': json.dumps('Error in processing removal.')
+            }
 
         # save_response = save_image_s3(image, results_key_prefix)
         # print("Done saving s3 result")
+        print("Sending inpainting image to Telebot")
+        np_image = (np.array(image)).astype(np.uint8)
+        img = Image.fromarray(np_image)
+        telebot_response = send_photo_telebot(img, payload["message"]["chat"]["id"])
 
-        telebot_response = send_photo_telebot(image, payload["message"]["chat"]["id"])
+        
+        outpainted_image = outpaint(payload["base_image_s3_key"], text_prompt, "right")
+        print("Sending outpainting image to Telebot")
+        telebot_outpaint_response = send_photo_telebot(outpainted_image, payload["message"]["chat"]["id"])
 
         return {
             'statusCode': 200,

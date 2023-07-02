@@ -9,6 +9,7 @@ provider:
     S3_BUCKET: ${self:custom.env.bucket}
     SM_ENDPOINT: ${self:custom.env.sm_endpoint}
     TELEBOT_TOKEN: ${self:custom.env.telebot_token}
+    REPLICATE_TOKEN: ${self:custom.env.replicate_token}
 
 functions:
   remove:
